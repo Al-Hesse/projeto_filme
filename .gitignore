@@ -23,3 +23,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Relatorios locais de desenvolvimento
+RELATORIO_*.md
+RELATORIO_DESENVOLVIMENTO.md
