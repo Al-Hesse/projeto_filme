@@ -6,26 +6,45 @@ O projeto consiste em uma **API REST completa (CRUD)** para o cadastro de filmes
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 🚀 Como Executar o Projeto (Backend + App com Expo Go)
 
-A forma mais prática e rápida de executar o projeto, sem precisar instalar PHP, Composer ou SQLite em sua máquina local, é utilizando o **Docker**.
+Siga o passo a passo abaixo para rodar o backend e testar o aplicativo diretamente no seu celular físico usando o **Expo Go**:
 
-### 1. Iniciar o Servidor
-Certifique-se de que o Docker está instalado e execute o comando abaixo no terminal da raiz do projeto:
+### Passo 1: Iniciar o Backend (API Laravel via Docker)
+Certifique-se de que o Docker está instalado e execute o comando abaixo no terminal da raiz do backend (`projeto_filme`):
 
 ```bash
 docker compose up -d
 ```
 
-Este comando irá baixar e executar o contêiner em segundo plano. A API estará disponível em:
-👉 **`http://localhost:8088`**
+Este comando inicia o contêiner em segundo plano. A API estará acessível em:
+👉 **`http://localhost:8088`** (e na sua rede local em `http://<SEU_IP_LOCAL>:8088/api`)
 
-### 2. Popular o Banco com Dados Iniciais (Opcional)
-Para popular o banco com filmes fictícios e pôsteres temáticos:
+### Passo 2: Popular o Banco com Filmes e Pôsteres Iniciais
+Para carregar o catálogo com 10 filmes fictícios e pôsteres temáticos:
 
 ```bash
 docker compose exec api php artisan db:seed --class=FilmeSeeder
 ```
+
+### Passo 3: Instalar o Expo Go no Smartphone
+1. No seu celular Android ou iPhone, acesse a loja de aplicativos:
+   - **Android:** [Google Play Store - Expo Go](https://play.google.com/store/apps/details?id=host.exp.exponent)
+   - **iOS:** [Apple App Store - Expo Go](https://apps.apple.com/app/expo-go/id982107779)
+2. Instale o aplicativo **Expo Go**.
+3. Conecte o smartphone na **mesma rede Wi-Fi** do computador que está rodando a API e o projeto.
+
+### Passo 4: Iniciar o Aplicativo Mobile e Escanear o QR Code
+1. Abra um segundo terminal e navegue até a pasta do aplicativo (`projeto_filme_app`):
+```bash
+cd ../projeto_filme_app
+npm install
+npx expo start
+```
+2. Um **QR Code** será gerado e exibido diretamente no seu terminal.
+3. **No Android:** Abra o app **Expo Go** e toque em **"Scan QR Code"**, apontando a câmera para o terminal.
+4. **No iOS:** Abra a **Câmera padrão** do iPhone, aponte para o QR Code e toque na notificação para abrir no Expo Go.
+5. O aplicativo será carregado no seu smartphone pronto para você testar todo o CRUD (consulta, cadastro com foto, edição e exclusão)!
 
 ---
 
@@ -55,19 +74,19 @@ Cada filme possui **8 atributos** (atendendo ao mínimo de 7 exigido), engloband
 
 ---
 
-## 📱 Integração com o Aplicativo Móvel (Expo / Expo Go / React Native)
+## 📱 Recursos para Consumo no Expo Go
 
-A API foi projetada para ser consumida pela aplicação mobile desenvolvida com **Expo** e executada via **Expo Go** na **Entrega 2**:
+A API foi projetada para garantir compatibilidade total com o Expo Go:
 
-1. **CORS Habilitado (`Access-Control-Allow-Origin: *`):** Permite o consumo transparente sem bloqueios de política de mesma origem tanto no emulador quanto no aplicativo **Expo Go** em smartphones físicos na mesma rede Wi-Fi.
+1. **CORS Habilitado (`Access-Control-Allow-Origin: *`):** Permite que o smartphone rodando o Expo Go acerte os endpoints diretamente na rede local sem bloqueios.
 2. **URLs Absolutas de Imagens:** A API retorna a URL completa e acessível para renderização direta em componentes `<Image source={{ uri: filme.foto }} />`.
-3. **Execução no Expo Go:** O frontend mobile conecta-se a esta API utilizando React Hook Form, Zod, Axios, TanStack React Query e arquitetura por Features, permitindo escanear o QR Code no **Expo Go** para testar todo o fluxo de CRUD em tempo real.
+3. **Padrão Features no App:** O frontend foi construído em React Native + Expo utilizando React Hook Form, Zod, Axios e TanStack React Query.
 
 ---
 
-## 🧪 Como Testar os Endpoints
+## 🧪 Como Testar os Endpoints via Terminal
 
-Você pode testar a API utilizando ferramentas como **Postman**, **Insomnia**, ou diretamente através do terminal usando **curl**:
+Você também pode testar a API utilizando ferramentas como **Postman**, **Insomnia**, ou diretamente através do terminal usando **curl**:
 
 ### 1. Listar Filmes (GET)
 ```bash
