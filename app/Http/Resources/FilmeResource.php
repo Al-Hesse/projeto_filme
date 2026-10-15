@@ -24,7 +24,11 @@ class FilmeResource extends JsonResource
             'data_de_lancamento' => $this->data_de_lancamento instanceof \DateTimeInterface
                 ? $this->data_de_lancamento->format('Y-m-d')
                 : $this->data_de_lancamento,
-            'foto' => $this->foto ? url('storage/'.$this->foto) : null,
+            'foto' => $this->foto
+                ? (str_starts_with($this->foto, 'http://') || str_starts_with($this->foto, 'https://')
+                    ? $this->foto
+                    : url('storage/'.$this->foto))
+                : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
