@@ -55,13 +55,13 @@ Cada filme possui **8 atributos** (atendendo ao mínimo de 7 exigido), engloband
 
 ---
 
-## 📱 Integração com o Aplicativo Móvel (Expo / React Native)
+## 📱 Integração com o Aplicativo Móvel (Expo / Expo Go / React Native)
 
-A API foi projetada para ser consumida pela aplicação mobile Expo desenvolvida na **Entrega 2**:
+A API foi projetada para ser consumida pela aplicação mobile desenvolvida com **Expo** e executada via **Expo Go** na **Entrega 2**:
 
-1. **CORS Habilitado (`Access-Control-Allow-Origin: *`):** Permite o consumo transparente sem bloqueios de política de mesma origem.
+1. **CORS Habilitado (`Access-Control-Allow-Origin: *`):** Permite o consumo transparente sem bloqueios de política de mesma origem tanto no emulador quanto no aplicativo **Expo Go** em smartphones físicos na mesma rede Wi-Fi.
 2. **URLs Absolutas de Imagens:** A API retorna a URL completa e acessível para renderização direta em componentes `<Image source={{ uri: filme.foto }} />`.
-3. **App Mobile:** O frontend utiliza React Hook Form, Zod, Axios, TanStack React Query e arquitetura organizada por Features.
+3. **Execução no Expo Go:** O frontend mobile conecta-se a esta API utilizando React Hook Form, Zod, Axios, TanStack React Query e arquitetura por Features, permitindo escanear o QR Code no **Expo Go** para testar todo o fluxo de CRUD em tempo real.
 
 ---
 
