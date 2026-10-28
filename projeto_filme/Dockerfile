@@ -1,6 +1,6 @@
-FROM php:8.3-cli
+FROM php:8.4-cli
 
-# Instalar dependências de sistema e extensões do PHP para Laravel 11/12
+# Instalar dependências de sistema e extensões do PHP para Laravel
 RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     libxml2-dev \
@@ -19,11 +19,11 @@ WORKDIR /app
 # Copiar arquivos do projeto
 COPY . .
 
-# Criar .env temporário para que o artisan package:discover funcione durante o composer install
+# Criar .env temporário para o artisan package:discover
 RUN cp -n .env.example .env
 
 # Instalar dependências do Composer sem pacotes de desenvolvimento
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+RUN composer install --no-dev --optimize-autoloader
 
 # Configurar permissões de armazenamento
 RUN chmod -R 777 storage bootstrap/cache
