@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+vendor/
+projeto_filme/vendor/
+projeto_filme/node_modules/
+projeto_filme_app/node_modules/
+
+# Expo / React Native
+.expo/
+projeto_filme_app/.expo/
+projeto_filme_app/dist/
+projeto_filme_app/web-build/
+projeto_filme_app/expo-env.d.ts
+projeto_filme_app/ios/
+projeto_filme_app/android/
+
+# Laravel / Backend
+projeto_filme/.env
+projeto_filme/public/storage
+projeto_filme/public/build
+projeto_filme/public/hot
+projeto_filme/storage/*.key
+projeto_filme/database/*.sqlite*
+projeto_filme/.phpunit.result.cache
+projeto_filme/.phpunit.cache
+
+# Logs & Environment
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env*.local
+
+# IDEs & Editors
+.idea/
+.vscode/
+.zed/

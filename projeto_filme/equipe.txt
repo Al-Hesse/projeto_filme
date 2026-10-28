@@ -1,0 +1,7 @@
+Tema: Cadastro de Filmes
+Membros da equipe:
+- Alexandre Hesse
+- Andrey Kerges
+- Joao Luiz
+- Max Vilafan
+- Vitor Augusto
