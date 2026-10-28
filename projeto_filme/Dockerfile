@@ -1,12 +1,15 @@
-FROM php:8.2-cli
+FROM php:8.3-cli
 
-# Instalar dependências de sistema e extensão do SQLite
+# Instalar dependências de sistema e extensões do PHP para Laravel 11/12
 RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
+    libxml2-dev \
+    libzip-dev \
     unzip \
     git \
     zip \
-    && docker-php-ext-install pdo pdo_sqlite
+    curl \
+    && docker-php-ext-install pdo pdo_sqlite bcmath
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -16,8 +19,11 @@ WORKDIR /app
 # Copiar arquivos do projeto
 COPY . .
 
-# Instalar dependências do Composer sem dependências de dev
-RUN composer install --no-dev --optimize-autoloader
+# Criar .env temporário para que o artisan package:discover funcione durante o composer install
+RUN cp -n .env.example .env
+
+# Instalar dependências do Composer sem pacotes de desenvolvimento
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Configurar permissões de armazenamento
 RUN chmod -R 777 storage bootstrap/cache
@@ -25,9 +31,8 @@ RUN chmod -R 777 storage bootstrap/cache
 # Porta exposta pelo Render
 EXPOSE 8080
 
-# Script de inicialização: cria o banco SQLite, roda as migrations e o seeder, e inicia o servidor
-CMD sh -c "cp -n .env.example .env && \
-    touch database/database.sqlite && \
+# Script de inicialização
+CMD sh -c "touch database/database.sqlite && \
     php artisan key:generate --force && \
     php artisan migrate --force && \
     php artisan db:seed --class=FilmeSeeder --force && \
