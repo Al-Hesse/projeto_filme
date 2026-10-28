@@ -88,7 +88,7 @@ export const FilmeListScreen: React.FC<FilmeListScreenProps> = ({
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={refetch}
+            onRefresh={() => { refetch(); }}
             colors={[colors.secondary]}
             tintColor={colors.secondary}
           />

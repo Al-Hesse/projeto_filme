@@ -301,7 +301,7 @@ export const FilmeForm: React.FC<FilmeFormProps> = ({
       {/* Botão de Enviar */}
       <TouchableOpacity
         style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
-        onPress={handleSubmit(handleFormSubmit)}
+        onPress={() => handleSubmit(handleFormSubmit)()}
         disabled={isLoading}
         activeOpacity={0.8}
       >
