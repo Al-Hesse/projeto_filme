@@ -8,12 +8,17 @@ import { FilmeFormScreen } from '../features/filmes/screens/FilmeFormScreen';
 import { LoginScreen } from '../features/auth/screens/LoginScreen';
 import { RegisterScreen } from '../features/auth/screens/RegisterScreen';
 import { useAuth } from '../features/auth/context/AuthContext';
+import { LoadingSpinner } from '../features/filmes/components/LoadingSpinner';
 import { colors, spacing, borderRadius } from '../theme/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isLoading, logout } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner message="Carregando aplicativo..." />;
+  }
 
   return (
     <Stack.Navigator
