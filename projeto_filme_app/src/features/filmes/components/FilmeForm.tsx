@@ -272,7 +272,7 @@ export const FilmeForm: React.FC<FilmeFormProps> = ({
       {/* Data de Lançamento */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
-          Data de Lançamento (AAAA-MM-DD) <Text style={styles.required}>*</Text>
+          Data de Lançamento (DD/MM/AAAA ou AAAA-MM-DD) <Text style={styles.required}>*</Text>
         </Text>
         <Controller
           control={control}
@@ -283,8 +283,9 @@ export const FilmeForm: React.FC<FilmeFormProps> = ({
                 styles.input,
                 errors.data_de_lancamento && styles.inputError,
               ]}
-              placeholder="Ex: 2024-03-15"
+              placeholder="Ex: 15/03/2024 ou 2024-03-15"
               placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
