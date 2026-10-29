@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { api } from '../../../services/api';
 import { Filme, FilmeListResponse, FilmeSingleResponse, SelectedImage } from '../types/filme.types';
 import { FilmeFormData } from '../schemas/filme.schema';
@@ -25,21 +26,27 @@ export const createFilme = async (
   formData.append('data_de_lancamento', data.data_de_lancamento);
 
   if (image && image.uri) {
-    const filename = image.uri.split('/').pop() || 'photo.jpg';
+    let uri = image.uri;
+    if (Platform.OS === 'ios' && uri.startsWith('file://')) {
+      uri = uri.replace('file://', '');
+    }
+    const filename = image.name || uri.split('/').pop() || 'photo.jpg';
     const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : 'image/jpeg';
+    const ext = match ? match[1].toLowerCase() : 'jpg';
+    const mimeType = image.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
     formData.append('foto', {
-      uri: image.uri,
+      uri: uri,
       name: filename,
-      type: image.type || type,
-    } as unknown as Blob);
+      type: mimeType,
+    } as any);
   }
 
   const response = await api.post<FilmeSingleResponse>('/filmes', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    transformRequest: (data) => data,
   });
 
   return response.data.data;
@@ -60,21 +67,27 @@ export const updateFilme = async (
   formData.append('data_de_lancamento', data.data_de_lancamento);
 
   if (image && image.uri) {
-    const filename = image.uri.split('/').pop() || 'photo.jpg';
+    let uri = image.uri;
+    if (Platform.OS === 'ios' && uri.startsWith('file://')) {
+      uri = uri.replace('file://', '');
+    }
+    const filename = image.name || uri.split('/').pop() || 'photo.jpg';
     const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : 'image/jpeg';
+    const ext = match ? match[1].toLowerCase() : 'jpg';
+    const mimeType = image.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
     formData.append('foto', {
-      uri: image.uri,
+      uri: uri,
       name: filename,
-      type: image.type || type,
-    } as unknown as Blob);
+      type: mimeType,
+    } as any);
   }
 
   const response = await api.post<FilmeSingleResponse>(`/filmes/${id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    transformRequest: (data) => data,
   });
 
   return response.data.data;
