@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// URL da API Laravel hospedada na nuvem (Render)
-// Funciona em qualquer lugar (faculdade, casa, Wi-Fi, 4G, celular físico e emulador)
+// URL da API Laravel hospedada na nuvem (Render) ou local
 export const API_BASE_URL = 'https://projeto-filme-o03c.onrender.com/api';
 
 export const api = axios.create({
@@ -11,3 +10,16 @@ export const api = axios.create({
     Accept: 'application/json',
   },
 });
+
+let currentAuthToken: string | null = null;
+
+export const setAuthToken = (token: string | null) => {
+  currentAuthToken = token;
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+export const getAuthToken = () => currentAuthToken;
