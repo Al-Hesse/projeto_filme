@@ -37,8 +37,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       await login(data);
     } catch (error: any) {
-      const message =
-        error.response?.data?.message || 'Falha ao realizar login. Verifique suas credenciais.';
+      let message = error.response?.data?.message;
+      if (!message) {
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          message = 'O servidor demorou para responder (pode estar acordando no Render). Aguarde alguns segundos e tente novamente.';
+        } else if (error.message === 'Network Error') {
+          message = 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.';
+        } else {
+          message = 'Falha ao realizar login. Verifique suas credenciais.';
+        }
+      }
       Alert.alert('Erro no Login', message);
     }
   };
