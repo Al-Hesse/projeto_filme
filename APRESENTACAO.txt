@@ -1,0 +1,274 @@
+================================================================================
+GUIA COMPLETO DE APRESENTAÇÃO DO PROJETO - PDM
+================================================================================
+Disciplina: Programação para Dispositivos Móveis (PDM)
+Projeto:    Catálogo e Gerenciador de Filmes (Monorepo Backend + Mobile)
+Autor:      Al Hesse
+================================================================================
+
+--------------------------------------------------------------------------------
+1. RESUMO EXECUTIVO DO PROJETO
+--------------------------------------------------------------------------------
+
+O projeto é uma solução completa de ponta a ponta para catálogo e gestão de 
+filmes, estruturado no modelo de Monorepo (Backend e Mobile no mesmo repositório,
+mas com total desacoplamento de responsabilidades):
+
+1. BACKEND (projeto_filme/):
+   - API RESTful desenvolvida em PHP 8.4 e Laravel 11/13.
+   - Autenticação por tokens com Laravel Sanctum.
+   - Suporte completo a upload de fotos/pôsteres físicos com multipart/form-data.
+   - Suíte de testes automatizados com PHPUnit.
+   - Conteinerização com Docker e Docker Compose.
+   - Hospedagem ativa na nuvem via Render:
+     https://projeto-filme-o03c.onrender.com/api
+
+2. FRONTEND MOBILE (projeto_filme_app/):
+   - Aplicativo nativo multiplataforma desenvolvido em React Native com Expo (SDK 58).
+   - Desenvolvido 100% em TypeScript estrito.
+   - Arquitetura moderna organizada por Funcionalidades (Feature-Based).
+   - Gerenciamento de estado de servidor e cache inteligente com React Query v5.
+   - Formulários com React Hook Form v7 e validação por esquemas Zod v4.
+   - Persistência local de sessão com AsyncStorage.
+   - Seleção de fotos da galeria com expo-image-picker.
+   - Identidade visual temática Dark Cinema (#121214 / #5C0916 / #E50914).
+
+
+--------------------------------------------------------------------------------
+2. STACK TECNOLÓGICA COMPLETA
+--------------------------------------------------------------------------------
+
+[BACKEND & INFRAESTRUTURA]
+- Linguagem:           PHP 8.3 / 8.4
+- Framework Web:       Laravel 11 / 13
+- Banco de Dados:      SQLite (dev local e testes) / PostgreSQL em nuvem
+- Autenticação:        Laravel Sanctum 4.0 (Bearer Tokens)
+- Serialização:        Laravel API Resources (FilmeResource)
+- Testes Automatizados:PHPUnit 12.x + RefreshDatabase
+- Containerização:     Docker / Docker Compose (porta local 8088:8000)
+- Deploy Cloud:        Render Web Service
+
+[FRONTEND MOBILE]
+- Framework Base:      React Native 0.88 com Expo SDK 58
+- Linguagem:           TypeScript 6.0
+- Gerenciador de Cache:@tanstack/react-query v5
+- Formulários:         react-hook-form v7
+- Validação:           zod v4 com @hookform/resolvers
+- Navegação:           @react-navigation/native-stack v7
+- Cliente HTTP:        Axios v1
+- Armazenamento Local: @react-native-async-storage/async-storage 2.2
+- Multimídia/Hardware: expo-image-picker (acesso à galeria de fotos)
+- UI/Tema:             Design System Dark Cinema com tokens centralizados
+
+
+--------------------------------------------------------------------------------
+3. COMO FUNCIONA O BACKEND (ARQUITETURA DA API)
+--------------------------------------------------------------------------------
+
+3.1. MODELO DE DADOS (Entidade Filme)
+A tabela possui 8 atributos principais:
+- id:                  Chave primária (auto-incremento)
+- titulo:              Nome do filme (obrigatório, até 255 caracteres)
+- genero:              Gênero cinematográfico (Ação, Drama, Ficção, etc.)
+- diretor:             Nome do diretor ou diretora
+- ano:                 Ano de lançamento (validado entre 1800 e ano atual + 10)
+- duracao_em_minutos:  Duração total em minutos (inteiro positivo)
+- data_de_lancamento:  Data de estreia no formato AAAA-MM-DD
+- foto:                Caminho relativo do arquivo no disco ou URL externa
+
+3.2. ROTAS E SEGURANÇA (Laravel Sanctum)
+A API separa as rotas em públicas e protegidas:
+
+* Rotas Públicas (Qualquer pessoa pode ler o catálogo):
+  - POST /api/register       -> Cria novo usuário e retorna token
+  - POST /api/login          -> Autentica e gera Bearer Token
+  - GET  /api/filmes         -> Lista filmes ordenados pelos mais recentes
+  - GET  /api/filmes/{id}    -> Exibe detalhes de um filme específico
+
+* Rotas Protegidas (Exige cabeçalho 'Authorization: Bearer <token>'):
+  - POST   /api/logout       -> Invalida e destrói o token atual
+  - GET    /api/me           -> Retorna o usuário logado
+  - POST   /api/filmes       -> Cadastra novo filme com upload opcional
+  - PUT    /api/filmes/{id}  -> Atualiza filme e substitui/remove imagem
+  - DELETE /api/filmes/{id}  -> Remove o filme e apaga o arquivo físico
+
+3.3. PONTOS DE DESTAQUE TÉCNICO NO BACKEND
+
+1. Camada de Transformação (FilmeResource):
+   Desacopla a estrutura crua do banco de dados do JSON entregue ao app.
+   Transforma automaticamente caminhos relativos de foto em URLs absolutas 
+   completas (ex: https://servidor/storage/filmes/foto.jpg) e preserva URLs
+   externas caso o filme venha de link externo.
+
+2. Gestão Limpa de Arquivos no Disco:
+   Ao atualizar a foto de um filme ou ao deletar um filme, o controller executa:
+   Storage::disk('public')->delete($filme->foto);
+   Isso evita o acúmulo de arquivos órfãos consumindo espaço em disco.
+
+3. Compatibilidade Multipart com HTTP Method Spoofing:
+   Como o PHP nativo não popula a variável $_FILES em requisições PUT puras, o 
+   projeto aceita requisições POST contendo o parâmetro oculto '_method = PUT'.
+   Isso permite que o app faça upload de arquivos na atualização sem falhas.
+
+4. Testes Automatizados (PHPUnit):
+   O arquivo FilmeTest.php cobre cenários reais com banco em memória: listagem,
+   criação com e sem foto simulada (UploadedFile::fake()), validação de campos
+   obrigatórios e exclusão com retorno de código HTTP correspondente.
+
+
+--------------------------------------------------------------------------------
+4. COMO FUNCIONA O FRONTEND MOBILE (ARQUITETURA REACT NATIVE)
+--------------------------------------------------------------------------------
+
+4.1. ARQUITETURA BASEADA EM FUNCIONALIDADES (Feature-Based)
+O código é organizado em módulos de negócio dentro de src/features/:
+- src/features/auth/   -> Telas de Login/Cadastro, contexto de autenticação e validação
+- src/features/filmes/ -> Telas de lista/detalhes/cadastro, hooks React Query e componentes
+
+4.2. FLUXO DE NAVEGAÇÃO REATIVO
+O RootNavigator observa o estado do AuthContext:
+- Se não autenticado:  Apenas telas de Login e Registro estão acessíveis.
+- Se autenticado:      Telas do Catálogo, Detalhes e Formulário são liberadas,
+                       com o botão "Sair" disponível no cabeçalho.
+- O token é gravado no AsyncStorage; ao fechar e reabrir o app, o login permanece!
+
+4.3. CACHE E GERENCIAMENTO DE ESTADO COM REACT QUERY (v5)
+- Elimina a necessidade de useEffects manuais e múltiplos useState de loading.
+- Ao salvar, editar ou excluir um filme, a mutation chama:
+  queryClient.invalidateQueries({ queryKey: ['filmes'] });
+  A lista de filmes é recarregada automaticamente em segundo plano.
+- Pull-to-refresh nativo sincronizado com o estado de refetch da query.
+
+4.4. FORMULÁRIOS COM REACT HOOK FORM + ZOD
+- React Hook Form usa referências não-controladas, evitando que cada letra digitada
+  re-renderize a tela inteira do celular (ótima performance).
+- Zod valida os tipos, limites numéricos e obrigatoriedade dos campos, emitindo
+  mensagens de erro claras abaixo de cada campo do formulário.
+
+4.5. UPLOAD DE FOTOS NATIVO COM EXPO IMAGE PICKER
+- Abre a galeria nativa do smartphone com permissões tratadas.
+- Converte a imagem em um payload FormData com uri, name e type (MIME type),
+  compatível tanto com Android quanto com iOS.
+
+4.6. IDENTIDADE VISUAL "DARK CINEMA"
+- Fundo cinza bem escuro (#121214) que economiza bateria em telas OLED.
+- Cards dos filmes em Vermelho Sangue / Vinho profundo (#5C0916).
+- Botões de ação em Vermelho vibrante (#E50914).
+- Feedback visual completo: telas de carregamento, lista vazia e diálogos de alerta.
+
+
+--------------------------------------------------------------------------------
+5. PASSO A PASSO DOS FLUXOS PRINCIPAIS ("COMO FUNCIONA")
+--------------------------------------------------------------------------------
+
+FLUXO 1: CRIAR CONTA E ENTRAR NO APP
+1. Usuário abre o app -> tela de Login é exibida.
+2. Toca em "Criar Conta", digita nome, e-mail e senha.
+3. App envia POST /api/register -> Laravel cria o usuário com senha criptografada.
+4. Token Bearer é gerado e salvo no AsyncStorage do celular.
+5. Axios recebe o cabeçalho Authorization: Bearer <token>.
+6. O app redireciona imediatamente para o Catálogo de Filmes.
+
+FLUXO 2: CONSULTA E BUSCA EM TEMPO REAL
+1. A lista de filmes carrega via GET /api/filmes através do React Query.
+2. O usuário pode rolar os cards com pôster, título, gênero e ano.
+3. Ao digitar no campo de busca (ex: "Ficção"), o app filtra instantaneamente
+   por título, gênero ou diretor sem precisar chamar a API novamente.
+4. O gesto de puxar para baixo (Pull-to-refresh) atualiza os dados da nuvem.
+
+FLUXO 3: CADASTRO DE UM NOVO FILME COM PÔSTER
+1. Usuário clica no botão flutuante "+".
+2. Toca no seletor de pôster e escolhe uma imagem da galeria.
+3. Preenche os dados obrigatórios; o Zod valida os campos ao tocar em salvar.
+4. App envia requisição POST /api/filmes com FormData (dados + imagem binária).
+5. Laravel salva o arquivo no disco público e cadastra o registro no banco.
+6. React Query invalida o cache e o novo filme já aparece no topo da lista.
+
+FLUXO 4: EXCLUSÃO COM CONFIRMAÇÃO
+1. Na tela de detalhes, o usuário toca em "Excluir Filme".
+2. Diálogo nativo pergunta: "Tem certeza que deseja remover este filme?".
+3. Ao confirmar, o app envia DELETE /api/filmes/{id}.
+4. Backend apaga o arquivo da imagem do servidor e exclui do banco de dados.
+5. A tela retorna ao catálogo com a lista já sincronizada.
+
+
+--------------------------------------------------------------------------------
+6. ROTEIRO SUGERIDO PARA A APRESENTAÇÃO (5 A 8 MINUTOS)
+--------------------------------------------------------------------------------
+
+[Minuto 1 - Abertura]
+"Olá professor! Nosso projeto prático para a disciplina de PDM é um sistema 
+completo de catálogo e gerenciamento de filmes, arquitetado no padrão Monorepo 
+com API RESTful no Backend e aplicativo nativo multiplataforma no Frontend."
+
+[Minutos 2 a 3 - Explicação do Backend]
+"No Backend, construímos a API em PHP 8 e Laravel, rodando encapsulada em Docker.
+Implementamos autenticação com Laravel Sanctum usando Bearer Tokens. Todas as 
+operações de CRUD foram implementadas, com upload físico de fotos em multipart,
+limpeza de arquivos órfãos no disco ao editar ou excluir, e testes automatizados 
+com PHPUnit. A API já está rodando em produção na nuvem no Render."
+
+[Minutos 3 a 5 - Demonstração Prática no Celular (Expo Go)]
+(Mostre o app rodando no celular real ou emulador)
+1. Mostre a tela de Login e a persistência da sessão.
+2. Mostre o catálogo de filmes com pôsteres, busca em tempo real e pull-to-refresh.
+3. Abra um filme para ver os detalhes completos.
+4. Clique no botão '+', selecione uma foto real da galeria do seu celular,
+   preencha os dados e salve. Mostre ele aparecendo na lista imediatamente.
+5. Edite um dado e depois exclua um filme mostrando a caixa de confirmação.
+
+[Minutos 5 a 6 - Destaques Técnicos do Frontend]
+"No aplicativo, utilizamos React Native com Expo e TypeScript no padrão de 
+arquitetura Feature-Based. Usamos o React Query v5 para gerenciar o estado do 
+servidor com cache e revalidação automática, e o React Hook Form com esquemas Zod
+para garantir máxima performance de digitação e validação de tipos de ponta a ponta."
+
+[Minuto 7 - Conclusão]
+"O projeto cumpre todos os requisitos exigidos pela disciplina e segue os padrões 
+adotados pelo mercado atual. Estamos abertos para perguntas e para mostrar o código!"
+
+
+--------------------------------------------------------------------------------
+7. PERGUNTAS FREQUENTES DA BANCA/PROFESSOR & RESPOSTAS TÉCNICAS
+--------------------------------------------------------------------------------
+
+Pergunta 1: "Por que usaram o React Query em vez de apenas useEffect e useState?"
+Resposta:
+"O React Query é específico para Server State (dados remotos). Com useState e 
+useEffect, teríamos que gerenciar manualmente variáveis de loading, erro, cache e
+cancelamento de requisições. O React Query gerencia isso nativamente com cache na
+memória, revalidação em segundo plano e pull-to-refresh com pouquíssimas linhas."
+
+Pergunta 2: "Como funciona a autenticação com Sanctum no aplicativo mobile?"
+Resposta:
+"O Sanctum emite um Bearer Token quando o usuário faz login. Esse token é guardado
+de forma persistente no celular via AsyncStorage e adicionado ao cabeçalho 
+'Authorization: Bearer <token>' de cada requisição do Axios. Rotas como cadastrar,
+editar e excluir só autorizam a operação se o token for válido."
+
+Pergunta 3: "Por que usaram '_method = PUT' no FormData de atualização?"
+Resposta:
+"É uma particularidade da arquitetura interna do PHP: nativamente, o PHP só 
+processa a variável superglobal $_FILES e payloads multipart/form-data em 
+requisições POST. Para contornar isso com as boas práticas do Laravel, enviamos 
+um POST com o campo oculto '_method: PUT', permitindo atualizar dados e enviar 
+arquivos binários juntos sem quebrar a API."
+
+Pergunta 4: "O que é a arquitetura Feature-Based utilizada no App?"
+Resposta:
+"Ao invés de agrupar arquivos por tipo técnico (uma pasta só com todas as telas, 
+outra só com todos os componentes), agrupamos os arquivos pelo domínio do negócio: 
+temos 'features/auth' e 'features/filmes'. Cada módulo tem seus próprios 
+componentes, telas, hooks de API e esquemas Zod, tornando o projeto muito mais 
+modular e fácil de manter."
+
+Pergunta 5: "O que acontece com a imagem antiga quando um filme é editado ou excluído?"
+Resposta:
+"O controller no Laravel verifica se o filme já possuía uma foto salva no disco 
+local e utiliza Storage::disk('public')->delete(...) para apagar o arquivo físico
+antes de salvar a nova imagem ou de remover o registro da base de dados. Isso 
+garante que o servidor nunca acumule imagens órfãs que ocupariam espaço à toa."
+
+================================================================================
+FIM DO DOCUMENTO
+================================================================================
