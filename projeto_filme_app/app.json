@@ -22,7 +22,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O aplicativo precisa de acesso à galeria para selecionar fotos dos filmes.",
+          "cameraPermission": "O aplicativo precisa de acesso à câmera para tirar fotos dos filmes."
+        }
+      ]
     ]
   }
 }

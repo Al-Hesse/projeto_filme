@@ -86,6 +86,60 @@ export const FilmeForm: React.FC<FilmeFormProps> = ({
     }
   };
 
+  const takePhoto = async () => {
+    try {
+      const { status } =
+        await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permissão necessária',
+          'É necessário conceder permissão à câmera para tirar uma foto.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [2, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setSelectedImage({
+          uri: asset.uri,
+          name: asset.fileName || `foto_camera_${Date.now()}.jpg`,
+          type: asset.mimeType || 'image/jpeg',
+        });
+        setExistingImageUrl(null);
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível tirar a foto.');
+    }
+  };
+
+  const showImageSourceOptions = () => {
+    Alert.alert(
+      'Selecionar Imagem',
+      'Escolha como deseja adicionar a foto:',
+      [
+        {
+          text: 'Tirar Foto (Câmera)',
+          onPress: takePhoto,
+        },
+        {
+          text: 'Escolher da Galeria',
+          onPress: pickImage,
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
   const removeImage = () => {
     setSelectedImage(null);
     setExistingImageUrl(null);
@@ -116,7 +170,7 @@ export const FilmeForm: React.FC<FilmeFormProps> = ({
             <View style={styles.imageActions}>
               <TouchableOpacity
                 style={[styles.smallBtn, styles.editImgBtn]}
-                onPress={pickImage}
+                onPress={showImageSourceOptions}
               >
                 <Text style={styles.smallBtnText}>Trocar Foto</Text>
               </TouchableOpacity>
@@ -129,15 +183,27 @@ export const FilmeForm: React.FC<FilmeFormProps> = ({
             </View>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.uploadPlaceholder}
-            onPress={pickImage}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.uploadIcon}>📷</Text>
-            <Text style={styles.uploadText}>Selecionar Imagem</Text>
-            <Text style={styles.uploadSubtext}>Toque para abrir a galeria</Text>
-          </TouchableOpacity>
+          <View style={styles.imageOptionsRow}>
+            <TouchableOpacity
+              style={styles.uploadOptionCard}
+              onPress={takePhoto}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.uploadIcon}>📷</Text>
+              <Text style={styles.uploadText}>Tirar Foto</Text>
+              <Text style={styles.uploadSubtext}>Acessar câmera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.uploadOptionCard}
+              onPress={pickImage}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.uploadIcon}>🖼️</Text>
+              <Text style={styles.uploadText}>Galeria</Text>
+              <Text style={styles.uploadSubtext}>Escolher do álbum</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -365,6 +431,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.white,
+  },
+  imageOptionsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  uploadOptionCard: {
+    flex: 1,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: colors.cardBorder,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.card,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   uploadPlaceholder: {
     borderWidth: 2,
